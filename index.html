@@ -5,71 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bookmark This Page</title>
 
-  <!-- Favicon (no extra files needed) -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='64'%20height='64'%3E%3Crect%20width='100%25'%20height='100%25'%20rx='14'%20ry='14'%20fill='%23000'/%3E%3Ctext%20x='50%25'%20y='56%25'%20text-anchor='middle'%20font-size='38'%20fill='%23fff'%20font-family='Arial'%3E%E2%98%85%3C/text%3E%3C/svg%3E" />
+  <!-- Built-in favicon (no extra file needed) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' rx='14' fill='%23000'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-size='38' fill='%23fff' font-family='Arial'%3E★%3C/text%3E%3C/svg%3E">
 </head>
 
-<body style="margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#0b0b0f; color:#fff;">
-  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;">
-    <div style="max-width:900px; width:100%; text-align:center;">
-      <div style="font-size: clamp(48px, 7vw, 96px); font-weight: 900; line-height: 1.0; letter-spacing: -0.02em;">
-        BOOKMARK THIS PAGE
-      </div>
+<body style="margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#0b0b0f; color:#fff;">
 
-      <div style="margin-top:20px; font-size: clamp(16px, 2.2vw, 22px); opacity:0.9;">
-        Then click <strong>Continue</strong> to go to the correct site for the current time.
-      </div>
+<div id="bookmarkScreen" style="min-height:100vh; display:none; align-items:center; justify-content:center; padding:24px;">
+  <div style="max-width:900px; width:100%; text-align:center;">
 
-      <div style="margin-top:26px; display:flex; justify-content:center;">
-        <button id="continueBtn"
-          style="font-size: clamp(18px, 2.6vw, 26px);
-                 font-weight: 800;
-                 padding: 18px 34px;
-                 border-radius: 18px;
-                 border: 0;
-                 cursor: pointer;
-                 background: #ffffff;
-                 color: #000;
-                 box-shadow: 0 12px 30px rgba(0,0,0,0.45);">
-          Continue
-        </button>
-      </div>
-
-      <div id="status" style="margin-top:18px; font-size: 14px; opacity:0.75;">
-        (Redirect happens in the same tab.)
-      </div>
-
-      <div style="margin-top:28px; font-size: 13px; opacity:0.6;">
-        If you’re sharing a link or QR code, use this GitHub page link — not the Google Sites links.
-      </div>
+    <div style="font-size:clamp(48px,7vw,96px); font-weight:900; line-height:1;">
+      BOOKMARK THIS PAGE
     </div>
+
+    <div style="margin-top:20px; font-size:clamp(16px,2.2vw,22px); opacity:.9;">
+      You will only see this once.
+    </div>
+
+    <div style="margin-top:30px;">
+      <button id="continueBtn"
+        style="font-size:clamp(18px,2.6vw,26px);
+               font-weight:800;
+               padding:18px 36px;
+               border-radius:18px;
+               border:0;
+               cursor:pointer;
+               background:#ffffff;
+               color:#000;">
+        Continue
+      </button>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    function getRedirectUrl() {
-      // Visitor's device time
-      const now = new Date();
-      const totalMinutes = now.getHours() * 60 + now.getMinutes();
+<script>
+  function getRedirectUrl() {
+    const now = new Date();
+    const totalMinutes = now.getHours() * 60 + now.getMinutes();
 
-      // Schedule:
-      // 12:00 AM → 10:02 AM  => yt1  ( < 602 )
-      // 10:02 AM → 12:19 PM  => yt2  ( < 739 )
-      // 12:19 PM → 12:00 AM  => yt3  ( otherwise )
-      if (totalMinutes < 602) {
-        return "https://sites.google.com/moundsviewschools.org/yt1/youtube";
-      } else if (totalMinutes < 739) {
-        return "https://sites.google.com/moundsviewschools.org/yt2/youtube";
-      } else {
-        return "https://sites.google.com/moundsviewschools.org/yt3/youtube";
-      }
+    // 12:00 AM → 10:02 AM
+    if (totalMinutes < 602) {
+      return "https://sites.google.com/moundsviewschools.org/yt1/youtube";
     }
 
+    // 10:02 AM → 12:19 PM
+    if (totalMinutes < 739) {
+      return "https://sites.google.com/moundsviewschools.org/yt2/youtube";
+    }
+
+    // 12:19 PM → 12:00 AM
+    return "https://sites.google.com/moundsviewschools.org/yt3/youtube";
+  }
+
+  const alreadySeen = localStorage.getItem("skipBookmark");
+
+  if (alreadySeen === "true") {
+    // Skip bookmark screen completely
+    window.location.replace(getRedirectUrl());
+  } else {
+    // Show bookmark screen
+    document.getElementById("bookmarkScreen").style.display = "flex";
+
     document.getElementById("continueBtn").addEventListener("click", () => {
-      const url = getRedirectUrl();
-      document.getElementById("status").textContent = "Redirecting…";
-      // Same-tab, and replaces history so Back doesn't return here
-      window.location.replace(url);
+      localStorage.setItem("skipBookmark", "true");
+      window.location.replace(getRedirectUrl());
     });
-  </script>
+  }
+</script>
+
 </body>
 </html>
