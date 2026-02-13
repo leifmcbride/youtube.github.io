@@ -3,6 +3,65 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Same URL, Time-Switched Content</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; line-height: 1.4; }
+    .card { max-width: 900px; border: 1px solid #ddd; border-radius: 12px; padding: 18px; }
+    .meta { color: #555; font-size: 14px; margin-top: 10px; }
+    .slot { font-weight: 700; }
+    .hint { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Time-Switched Content (Same URL)</h1>
+    <div id="content">Loading…</div>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <script>
+    // NOTE:
+    // - This uses the visitor's device clock/timezone.
+    // - GitHub Pages is static; there's no server-side time enforcement.
+
+    const SLOT_1425_TO_MIDNIGHT = 1; // 2:25 PM -> 12:00 AM
+    const SLOT_MIDNIGHT_TO_0700 = 2; // 12:00 AM -> 7:00 AM
+    // Slots 3..10 are the 8 equal parts from 7:00 AM -> 2:25 PM
+
+    function minutesSinceMidnight(d) {
+      return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60 + d.getMilliseconds() / 60000;
+    }
+
+    function getSlotNumber(now) {
+      const t = minutesSinceMidnight(now);
+
+      const startMorning = 7 * 60;          // 07:00 = 420
+      const startAfternoon = 14 * 60 + 25;  // 14:25 = 865
+      const minutesMorningSpan = startAfternoon - startMorning; // 445 minutes
+      const parts = 8;
+
+      // 2:25 PM -> midnight
+      if (t >= startAfternoon) return SLOT_1425_TO_MIDNIGHT;
+
+      // midnight -> 7:00 AM
+      if (t < startMorning) return SLOT_MIDNIGHT_TO_0700;
+
+      // 7:00 AM -> 2:25 PM (evenly split into 8)
+      const elapsed = t - startMorning; // [0 .. <445]
+      const index = Math.floor((elapsed * parts) / minutesMorningSpan); // 0..7
+      return 3 + index; // 3..10
+    }
+
+    // Put your real content inside these 10 placeholders.
+    // You can use HTML strings, or call functions that build DOM, etc.
+    const slotContent = {
+      1: `
+        <div class="slot">Slot 1 (2:25 PM → Midnight)</div>
+        <p><span class="hint"><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>YouTube-style Search (Learning Project)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -345,7 +404,7 @@
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
-    const API_KEY = "AIzaSyD7DzzaO24wKOXlSdaymut1ORWczmmTlP8";
+    const API_KEY = "AIzaSyCTy8jYDjJael1ggak-RAS9hGlGjTsvyzY";
     const MAX_RESULTS = 20;
     const REGION_CODE = "US";
 
@@ -811,6 +870,67 @@
     homeNav.addEventListener("click", goHome);
 
     loadHome(true);
+  </script>
+</body>
+</html>
+</span></p>
+      `,
+      2: `
+        <div class="slot">Slot 2 (Midnight → 7:00 AM)</div>
+        <p><span class="hint">PLACEHOLDER CODE 2</span></p>
+      `,
+      3: `
+        <div class="slot">Slot 3 (Morning Part 1/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 3</span></p>
+      `,
+      4: `
+        <div class="slot">Slot 4 (Morning Part 2/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 4</span></p>
+      `,
+      5: `
+        <div class="slot">Slot 5 (Morning Part 3/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 5</span></p>
+      `,
+      6: `
+        <div class="slot">Slot 6 (Morning Part 4/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 6</span></p>
+      `,
+      7: `
+        <div class="slot">Slot 7 (Morning Part 5/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 7</span></p>
+      `,
+      8: `
+        <div class="slot">Slot 8 (Morning Part 6/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 8</span></p>
+      `,
+      9: `
+        <div class="slot">Slot 9 (Morning Part 7/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 9</span></p>
+      `,
+      10: `
+        <div class="slot">Slot 10 (Morning Part 8/8)</div>
+        <p><span class="hint">PLACEHOLDER CODE 10</span></p>
+      `
+    };
+
+    function render() {
+      const now = new Date();
+      const slot = getSlotNumber(now);
+
+      document.getElementById("content").innerHTML = slotContent[slot] || `<p>Missing content for slot ${slot}</p>`;
+
+      const t = minutesSinceMidnight(now);
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+
+      document.getElementById("meta").textContent =
+        `Local time: ${hh}:${mm}:${ss} | minutes since midnight: ${t.toFixed(3)} | active slot: ${slot}`;
+    }
+
+    render();
+    // Re-check every 1 second so it flips exactly when crossing a boundary.
+    setInterval(render, 1000);
   </script>
 </body>
 </html>
